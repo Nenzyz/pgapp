@@ -23,7 +23,7 @@
                 start_args::proplists:proplist()}).
 
 -define(INITIAL_DELAY, 500). % Half a second
--define(MAXIMUM_DELAY, 5 * 60 * 1000). % Five minutes
+-define(MAXIMUM_DELAY, 5 * 1000). % Five minutes
 -define(TIMEOUT, 5 * 1000).
 
 -define(STATE_VAR, '$pgapp_state').
@@ -131,11 +131,21 @@ code_change(_OldVsn, State, _Extra) ->
 
 connect(State) ->
     Args = State#state.start_args,
-    Hostname = proplists:get_value(host, Args),
-    Database = proplists:get_value(database, Args),
-    Username = proplists:get_value(username, Args),
+    % Hostname = proplists:get_value(host, Args),
+    % Database = proplists:get_value(database, Args),
+    % Username = proplists:get_value(username, Args),
 
-    case epgsql:connect(Args) of
+    Hostname = myapp:get_env("XM_HOST", proplists:get_value(host, Args)),
+    Database = myapp:get_env("XM_DATABASE", proplists:get_value(database, Args)),
+    Username = myapp:get_env("XM_USER", proplists:get_value(username, Args)),
+    Password = myapp:get_env("XM_PASSWORD", proplists:get_value(password, Args)),
+    Port = case os:getenv("XM_PORT") of
+        false -> proplists:get_value(port, Args, 5432);
+        PortValue -> list_to_integer(PortValue)
+    end,
+
+    case epgsql:connect(Hostname, Username, Password,
+                               [{database, Database}, {port, Port}]) of
         {ok, Conn} ->
             error_logger:info_msg(
               "~p Connected to ~s at ~s with user ~s: ~p~n",
