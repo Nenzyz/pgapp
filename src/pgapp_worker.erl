@@ -135,14 +135,11 @@ connect(State) ->
     % Database = proplists:get_value(database, Args),
     % Username = proplists:get_value(username, Args),
 
-    Hostname = ti_task:get_env("XM_HOST", proplists:get_value(host, Args)),
-    Database = ti_task:get_env("XM_DATABASE", proplists:get_value(database, Args)),
-    Username = ti_task:get_env("XM_USER", proplists:get_value(username, Args)),
-    Password = ti_task:get_env("XM_PASSWORD", proplists:get_value(password, Args)),
-    Port = case os:getenv("XM_PORT") of
-        false -> proplists:get_value(port, Args, 5432);
-        PortValue -> list_to_integer(PortValue)
-    end,
+    Hostname = proplists:get_value(host, Args),
+    Database = proplists:get_value(database, Args),
+    Username = proplists:get_value(username, Args),
+    Password = proplists:get_value(password, Args),
+    Port = proplists:get_value(port, Args, 5432),
 
     case epgsql:connect(Hostname, Username, Password,
                                [{database, Database}, {port, Port}]) of
